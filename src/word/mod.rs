@@ -50,3 +50,65 @@ impl Word {
     true
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::Word;
+  use termcolor::Color;
+
+  #[test]
+  #[should_panic]
+  fn new_invalid_word() {
+    let too_long_word = String::from("abcdefg");
+    let answer = String::from("edcba");
+    Word::new(&too_long_word, &answer);
+  }
+
+  #[test]
+  fn word_no_char_from_answer() {
+    let word_str = String::from("sssss");
+    let answer = String::from("aaaaa");
+
+    let word = Word::new(&word_str, &answer);
+
+    let word_chars: Vec<char> = word_str.chars().collect();
+    for (idx, col_char) in word.character.iter().enumerate() {
+      assert_eq!(col_char.0, word_chars[idx]);
+      assert_eq!(col_char.1, Color::Red);
+    }
+
+    assert_eq!(word.is_winner(), false);
+  }
+
+  #[test]
+  fn word_chars_wrong_order() {
+    let word_str = String::from("abcde");
+    let answer = String::from("edabc");
+
+    let word = Word::new(&word_str, &answer);
+
+    let word_chars: Vec<char> = word_str.chars().collect();
+    for (idx, col_char) in word.character.iter().enumerate() {
+      assert_eq!(col_char.0, word_chars[idx]);
+      assert_eq!(col_char.1, Color::Yellow);
+    }
+
+    assert_eq!(word.is_winner(), false);
+  }
+
+  #[test]
+  fn word_same_as_answer() {
+    let word_str = String::from("abcde");
+    let answer = String::from("abcde");
+
+    let word = Word::new(&word_str, &answer);
+
+    let word_chars: Vec<char> = word_str.chars().collect();
+    for (idx, col_char) in word.character.iter().enumerate() {
+      assert_eq!(col_char.0, word_chars[idx]);
+      assert_eq!(col_char.1, Color::Green);
+    }
+
+    assert_eq!(word.is_winner(), true);
+  }
+}
