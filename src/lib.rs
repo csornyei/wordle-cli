@@ -3,6 +3,55 @@ use rand::{Rng, thread_rng};
 use std::io::{Write, BufReader, Read};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
+#[derive(Copy, Clone)]
+pub struct Word {
+  character: [(char, Color); 5]
+}
+
+impl Word {
+  pub fn new(user_input: &String, answer: &String) -> Word {
+    let input_chars: Vec<char> = user_input.chars().collect();
+    let answer_chars: Vec<char> = answer.chars().collect();
+    if input_chars.len() != 5 {
+      panic!("Not valid word!");
+    } else {
+      let mut word_characters: [(char, Color); 5] = [('a', Color::Red); 5];
+      for (idx, input_char) in input_chars.iter().enumerate() {
+        match answer_chars.iter().position(|&c| c == *input_char) {
+          Some(ans_idx) => {
+            if idx == ans_idx {
+              word_characters[idx] = (input_char.clone(), Color::Green);
+            } else {
+              word_characters[idx] = (input_char.clone(), Color::Yellow);
+            }
+          },
+          None => {
+            word_characters[idx] = (input_char.clone(), Color::Red);
+          }
+        }
+      };
+      Word { character: word_characters}
+    }
+  }
+
+  pub fn print_word(&self) {
+    for (c, col) in self.character {
+      let mut b = [0; 4];
+      color_write(c.encode_utf8(&mut b), col);
+    }
+    println!("");
+  }
+
+  pub fn is_winner(&self) -> bool {
+    for (_, color) in self.character.iter() {
+      if *color != Color::Green {
+        return false
+      }
+    };
+    true
+  }
+}
+
 pub fn color_write(text: &str, color: Color) {
   let mut stdout = StandardStream::stdout(ColorChoice::Always);
   stdout.set_color(ColorSpec::new().set_fg(Some(color))).expect("Error with setting color!");
@@ -44,31 +93,12 @@ pub fn get_guesses() -> std::io::Result<Vec<String>> {
   Ok(guesses)
 }
 
-pub fn print_screen() {
+pub fn print_screen(guessed_words: &Vec<Word>) {
+  print!("\x1B[2J\x1b[1;1H");
   println!("Words so far:");
-  color_write("WEARY", Color::Red);
-  println!("");
-  color_write("BU", Color::Red);
-  color_write("L", Color::Yellow);
-  color_write("GE", Color::Red);
-  println!("");
-  color_write("P", Color::Red);
-  color_write("O", Color::Yellow);
-  color_write("I", Color::Red);
-  color_write("N", Color::Yellow);
-  color_write("T", Color::Red);
-  println!("");
-  color_write("NO", Color::Yellow);
-  color_write("MAD", Color::Red);
-  println!("");
-  color_write("C", Color::Red);
-  color_write("L", Color::Yellow);
-  color_write("O", Color::Green);
-  color_write("C", Color::Red);
-  color_write("K", Color::Yellow);
-  println!("");
-  color_write("KNOLL", Color::Green);
-  println!("");
+  for word in guessed_words.iter() {
+    word.print_word();
+  }
 
   println!("Remaining letters:");
 
@@ -77,4 +107,12 @@ pub fn print_screen() {
   println!("Guessed letters");
 
   println!("Please provide a new word!");
+}
+
+pub fn validate_user_input(input: &String, allowed_guesses: &Vec<String>) -> bool {
+  if input.len() != 5 {
+    false
+  } else {
+    allowed_guesses.contains(&input.clone().to_lowercase())
+  }
 }
