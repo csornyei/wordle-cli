@@ -14,22 +14,31 @@ impl Word {
       panic!("Not valid word!");
     } else {
       let mut word_characters: [ColoredChar; 5] = [ColoredChar('a', Color::Red); 5];
-      for (idx, input_char) in input_chars.iter().enumerate() {
-        match answer_chars.iter().position(|&c| c == *input_char) {
-          Some(ans_idx) => {
-            if idx == ans_idx {
-              word_characters[idx] = ColoredChar(input_char.clone(), Color::Green);
-            } else {
-              word_characters[idx] = ColoredChar(input_char.clone(), Color::Yellow);
+      if *user_input == *answer {
+        for (idx, input_char) in input_chars.iter().enumerate() {
+          word_characters[idx] = ColoredChar(input_char.clone(), Color::Green);
+        }
+        Word {
+          character: word_characters,
+        }
+      } else {
+        for (idx, input_char) in input_chars.iter().enumerate() {
+          match answer_chars.iter().position(|&c| c == *input_char) {
+            Some(ans_idx) => {
+              if idx == ans_idx {
+                word_characters[idx] = ColoredChar(input_char.clone(), Color::Green);
+              } else {
+                word_characters[idx] = ColoredChar(input_char.clone(), Color::Yellow);
+              }
+            }
+            None => {
+              word_characters[idx] = ColoredChar(input_char.clone(), Color::Red);
             }
           }
-          None => {
-            word_characters[idx] = ColoredChar(input_char.clone(), Color::Red);
-          }
         }
-      }
-      Word {
-        character: word_characters,
+        Word {
+          character: word_characters,
+        }
       }
     }
   }
@@ -100,6 +109,22 @@ mod test {
   fn word_same_as_answer() {
     let word_str = String::from("abcde");
     let answer = String::from("abcde");
+
+    let word = Word::new(&word_str, &answer);
+
+    let word_chars: Vec<char> = word_str.chars().collect();
+    for (idx, col_char) in word.character.iter().enumerate() {
+      assert_eq!(col_char.0, word_chars[idx]);
+      assert_eq!(col_char.1, Color::Green);
+    }
+
+    assert_eq!(word.is_winner(), true);
+  }
+
+  #[test]
+  fn word_has_repeating_characters() {
+    let word_str = String::from("knack");
+    let answer = String::from("knack");
 
     let word = Word::new(&word_str, &answer);
 
