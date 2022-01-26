@@ -1,7 +1,9 @@
 pub mod colored_char;
 pub mod lib;
+pub mod stats;
 pub mod word;
 use colored_char::ColoredChar;
+use stats::Stats;
 use termcolor::Color;
 use text_io::read;
 use word::Word;
@@ -153,6 +155,7 @@ impl GameState {
 
 fn main() {
     let mut state = GameState::init_game();
+    let mut stats = Stats::new();
     state.load_guesses();
     loop {
         state.new_game();
@@ -161,13 +164,17 @@ fn main() {
             state.request_word();
             if state.win {
                 println!("You won after {} guess!", state.get_entered_words());
+                stats.increment(state.get_entered_words());
                 break;
             }
         }
         if !state.win {
             println!("You lose! The secret word was {}", state.answer);
+            stats.increment(-1);
         }
+        stats.print();
         if state.prompt_exit() {
+            stats.save();
             println!("Goodbye!");
             break;
         }

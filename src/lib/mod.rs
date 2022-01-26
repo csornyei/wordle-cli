@@ -3,6 +3,28 @@ use regex::Regex;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
+pub fn get_progress_row(progress: f32) -> Result<String, String> {
+  if progress > 100.0 {
+    return Err(String::from("Progress is too high!"));
+  }
+  let mut progress_blocks: [char; 20] = [' '; 20];
+  let full_blocks = (progress / 5.0).floor() as i32;
+  for i in 0..full_blocks {
+    progress_blocks[i as usize] = char::from_u32(0x2588).unwrap();
+  }
+  if full_blocks < 20 {
+    progress_blocks[full_blocks as usize] = match (progress as i32) % 5 {
+      1 => char::from_u32(0x258E).unwrap(),
+      2 => char::from_u32(0x258D).unwrap(),
+      3 => char::from_u32(0x258B).unwrap(),
+      4 => char::from_u32(0x2589).unwrap(),
+      _ => ' ',
+    };
+  }
+  let progress_bar: String = progress_blocks.iter().collect();
+  Ok(format!("|{}| {:.1}%", progress_bar, progress))
+}
+
 fn get_answers() -> std::io::Result<Vec<String>> {
   let file = File::open("answers.txt")?;
   let mut reader = BufReader::new(file);
